@@ -8,7 +8,59 @@ paths:
       responses: {'200': {description: Healthy}}
   /api/v1/greenhouses:
     get: {summary: List greenhouses, responses: {'200': {description: OK}}}
+    post: {summary: Create greenhouse, security: [{bearerAuth: []}], responses: {'201': {description: Created}}}
   /api/v1/readings:
-    post: {summary: Ingest a sensor reading, responses: {'201': {description: Created}}}
+    post:
+      summary: Ingest a sensor reading, evaluate alerts and threshold-linkage rules
+      security: [{bearerAuth: []}]
+      responses: {'201': {description: Created}}
   /api/v1/alerts:
     get: {summary: List alerts, responses: {'200': {description: OK}}}
+  /api/v1/devices:
+    get: {summary: List devices, responses: {'200': {description: OK}}}
+  /api/v1/automation-rules:
+    get: {summary: List threshold-linkage rules, responses: {'200': {description: OK}}}
+    post:
+      summary: Create a threshold-linkage rule
+      security: [{bearerAuth: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, sensorId, deviceId, triggerSide, triggerAction]
+              properties:
+                name: {type: string, minLength: 2, maxLength: 100}
+                sensorId: {type: integer, minimum: 1}
+                deviceId: {type: integer, minimum: 1}
+                triggerSide: {type: string, enum: [high, low, both]}
+                triggerAction: {type: string, enum: [on, off]}
+                enabled: {type: boolean, default: true}
+      responses: {'201': {description: Created}}
+  /api/v1/automation-rules/{id}/status:
+    patch:
+      summary: Enable or disable a rule (re-enabling resets the rule to normal state)
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled: {type: boolean}
+      responses: {'200': {description: OK}}
+  /api/v1/automation-rules/{id}:
+    delete:
+      summary: Remove a threshold-linkage rule
+      security: [{bearerAuth: []}]
+      parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
+      responses: {'200': {description: OK}}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

@@ -18,8 +18,9 @@ func NewControlService(r *repository.DeviceRepository, l *slog.Logger, h *ws.Hub
 	return &ControlService{r, l, h}
 }
 func (s *ControlService) List(gid uint) ([]model.Device, error) { return s.repo.List(gid) }
-func (s *ControlService) Toggle(id uint, status string) (*model.Device, error) {
-	d, e := s.repo.Toggle(id, status)
+func (s *ControlService) Get(id uint) (*model.Device, error)    { return s.repo.Get(id) }
+func (s *ControlService) Toggle(id uint, status, operator string) (*model.Device, error) {
+	d, e := s.repo.Toggle(id, status, operator)
 	if e == nil {
 		s.hub.Broadcast(constants.EventDevice, d)
 	}

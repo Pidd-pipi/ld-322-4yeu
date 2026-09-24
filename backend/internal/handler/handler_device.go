@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/cygreenenv/greenhouse-panel/internal/constants"
 	"github.com/cygreenenv/greenhouse-panel/internal/dto"
 	apperrors "github.com/cygreenenv/greenhouse-panel/internal/errors"
 	"github.com/cygreenenv/greenhouse-panel/internal/model"
@@ -39,7 +40,7 @@ func (h *DeviceHandler) Toggle(c *gin.Context) {
 		Fail(c, apperrors.ErrValidation)
 		return
 	}
-	row, err := h.service.Toggle(id, req.Status)
+	row, err := h.service.Toggle(id, req.Status, constants.OperatorAdmin)
 	if err != nil {
 		Fail(c, err)
 		return

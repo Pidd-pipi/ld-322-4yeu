@@ -32,3 +32,14 @@ type ScheduleRequest struct {
 	Cron     string `json:"cron" validate:"required,max=50"`
 	Action   string `json:"action" validate:"required,oneof=on off"`
 }
+type RuleCreateRequest struct {
+	Name          string `json:"name" validate:"required,min=2,max=100"`
+	SensorID      uint   `json:"sensorId" validate:"required"`
+	DeviceID      uint   `json:"deviceId" validate:"required"`
+	TriggerSide   string `json:"triggerSide" validate:"required,oneof=high low both"`
+	TriggerAction string `json:"triggerAction" validate:"required,oneof=on off"`
+	Enabled       *bool  `json:"enabled"`
+}
+type RuleStatusRequest struct {
+	Enabled bool `json:"enabled"`
+}

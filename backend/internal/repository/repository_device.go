@@ -18,7 +18,18 @@ func (r *DeviceRepository) List(greenhouseID uint) ([]model.Device, error) {
 	}
 	return rows, nil
 }
-func (r *DeviceRepository) Toggle(id uint, status string) (*model.Device, error) {
+func (r *DeviceRepository) Get(id uint) (*model.Device, error) {
+	var row model.Device
+	err := r.db.First(&row, id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperrors.ErrRecordNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get device: %w", err)
+	}
+	return &row, nil
+}
+func (r *DeviceRepository) Toggle(id uint, status, operator string) (*model.Device, error) {
 	var row model.Device
 	err := r.db.First(&row, id).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -31,7 +42,7 @@ func (r *DeviceRepository) Toggle(id uint, status string) (*model.Device, error)
 	if err = r.db.Save(&row).Error; err != nil {
 		return nil, fmt.Errorf("save device: %w", err)
 	}
-	if err = r.db.Create(&model.DeviceAction{DeviceID: id, Action: status, Operator: "admin"}).Error; err != nil {
+	if err = r.db.Create(&model.DeviceAction{DeviceID: id, Action: status, Operator: operator}).Error; err != nil {
 		return nil, fmt.Errorf("create device action: %w", err)
 	}
 	return &row, nil

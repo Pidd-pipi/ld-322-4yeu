@@ -19,6 +19,7 @@ type Dependencies struct {
 	Monitoring *service.MonitoringService
 	Alerts     *service.AlertService
 	Control    *service.ControlService
+	Rules      *service.RuleService
 	Reports    *service.ReportService
 	Hub        *ws.Hub
 }
@@ -33,6 +34,7 @@ func New(d Dependencies) *gin.Engine {
 	monitoring := handler.NewMonitoringHandler(d.Monitoring, v)
 	alerts := handler.NewAlertHandler(d.Alerts)
 	devices := handler.NewDeviceHandler(d.Control, v)
+	rules := handler.NewRuleHandler(d.Rules, v)
 	reports := handler.NewReportHandler(d.Reports)
 	r.GET(constants.HealthPath, func(c *gin.Context) { handler.Success(c, gin.H{"status": "healthy"}) })
 	r.GET(constants.WebSocketPath, func(c *gin.Context) { d.Hub.Handle(c.Writer, c.Request) })
@@ -44,6 +46,7 @@ func New(d Dependencies) *gin.Engine {
 	api.GET("/readings/history", monitoring.History)
 	api.GET("/alerts", alerts.List)
 	api.GET("/devices", devices.List)
+	api.GET("/automation-rules", rules.List)
 	api.GET("/reports/environment", reports.Get)
 	secured := api.Group("")
 	secured.Use(middleware.Auth(d.Auth))
@@ -56,5 +59,8 @@ func New(d Dependencies) *gin.Engine {
 	secured.PATCH("/devices/:id/toggle", devices.Toggle)
 	secured.POST("/schedules", devices.Schedule)
 	secured.GET("/devices/:id/schedules", devices.Schedules)
+	secured.POST("/automation-rules", rules.Create)
+	secured.PATCH("/automation-rules/:id/status", rules.SetStatus)
+	secured.DELETE("/automation-rules/:id", rules.Remove)
 	return r
 }

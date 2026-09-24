@@ -38,7 +38,8 @@ docker compose down
 - **传感器采集与模拟**：通过 API 写入传感器读数；总览页可一键生成一轮演示采样。
 - **趋势与历史**：按温室和日/周/月范围查看 ECharts 折线趋势，支持图表缩放、平移及 CSV 导出。
 - **阈值报警**：每个传感器具备上下限；超限时持久化报警并通过 WebSocket 推送，支持标记为已处理。
-- **远程控制**：可开关循环风机、遮阳帘、灌溉泵、补光灯；每次操作保留设备操作记录，支持创建定时任务 API。
+- **阈值联动**：可新建联动规则——某读数超出上/下限时自动开启或关闭指定设备，恢复到正常范围后执行相反动作；状态机保证一次异常只处理一次，停用或配置不完整的规则绝不动设备；面板支持新建、启停、移除规则并展示最近一次执行结果。
+- **远程控制**：可开关循环风机、遮阳帘、灌溉泵、补光灯；每次操作保留设备操作记录（含自动联动来源），支持创建定时任务 API。
 - **环境报告**：自动计算平均值、最高/最低值与报警统计，支持日/周/月报告以及 PDF 导出。
 
 ## 技术栈
@@ -88,9 +89,11 @@ npm run dev
 | PUT | `/api/v1/sensors/:id/threshold` | 更新传感器上下限 |
 | GET / PATCH | `/api/v1/alerts`、`/api/v1/alerts/:id/handle` | 报警查询 / 处理 |
 | GET / PATCH | `/api/v1/devices`、`/api/v1/devices/:id/toggle` | 设备查询 / 开关 |
+| GET / POST | `/api/v1/automation-rules` | 联动规则查询（按温室）/ 新建 |
+| PATCH / DELETE | `/api/v1/automation-rules/:id/status`、`/api/v1/automation-rules/:id` | 启停规则 / 移除规则 |
 | POST | `/api/v1/schedules` | 创建设备定时任务 |
 | GET | `/api/v1/reports/environment?greenhouse_id=1&range=day` | 环境分析报告 |
-| GET | `/ws` | WebSocket 读数/报警/设备状态推送 |
+| GET | `/ws` | WebSocket 读数/报警/设备状态/联动结果推送 |
 
 完整的接口轮廓位于 [`backend/api/openapi.yaml`](backend/api/openapi.yaml)。
 

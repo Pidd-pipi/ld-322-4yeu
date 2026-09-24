@@ -15,12 +15,13 @@ type MonitoringService struct {
 	greenhouseRepo *repository.GreenhouseRepository
 	sensorRepo     *repository.SensorRepository
 	alertRepo      *repository.AlertRepository
+	rules          *RuleService
 	logger         *slog.Logger
 	hub            *ws.Hub
 }
 
-func NewMonitoringService(g *repository.GreenhouseRepository, s *repository.SensorRepository, a *repository.AlertRepository, l *slog.Logger, h *ws.Hub) *MonitoringService {
-	return &MonitoringService{g, s, a, l, h}
+func NewMonitoringService(g *repository.GreenhouseRepository, s *repository.SensorRepository, a *repository.AlertRepository, rules *RuleService, l *slog.Logger, h *ws.Hub) *MonitoringService {
+	return &MonitoringService{g, s, a, rules, l, h}
 }
 func (s *MonitoringService) ListGreenhouses() ([]model.Greenhouse, error) {
 	return s.greenhouseRepo.List()
@@ -48,6 +49,9 @@ func (s *MonitoringService) Ingest(sensorID uint, value float64) (*model.SensorR
 			return nil, nil, err
 		}
 		s.hub.Broadcast(constants.EventAlert, alert)
+	}
+	if s.rules != nil {
+		s.rules.EvaluateReading(sensor, value)
 	}
 	s.hub.Broadcast("reading.created", reading)
 	return reading, alert, nil
