@@ -32,3 +32,15 @@ type ScheduleRequest struct {
 	Cron     string `json:"cron" validate:"required,max=50"`
 	Action   string `json:"action" validate:"required,oneof=on off"`
 }
+type AutomationRuleRequest struct {
+	Name           string `json:"name" validate:"required,min=2,max=100"`
+	GreenhouseID   uint   `json:"greenhouseId" validate:"required"`
+	SensorID       uint   `json:"sensorId" validate:"required"`
+	DeviceID       uint   `json:"deviceId" validate:"required"`
+	AbnormalAction string `json:"abnormalAction" validate:"required,oneof=on off"`
+	NormalAction   string `json:"normalAction" validate:"required,oneof=on off"`
+	Enabled        *bool  `json:"enabled"`
+}
+type AutomationRuleStatusRequest struct {
+	Enabled bool `json:"enabled"`
+}

@@ -24,7 +24,7 @@ func TestIngestCreatesAlertBeyondThreshold(t *testing.T) {
 	sensor := model.Sensor{GreenhouseID: g.ID, Name: "温度", Type: "temperature", Unit: "°C", Status: "online"}
 	db.Create(&sensor)
 	db.Create(&model.Threshold{SensorID: sensor.ID, MinValue: 10, MaxValue: 30})
-	svc := NewMonitoringService(repository.NewGreenhouseRepository(db), repository.NewSensorRepository(db), repository.NewAlertRepository(db), slog.New(slog.NewTextHandler(io.Discard, nil)), ws.NewHub())
+	svc := NewMonitoringService(repository.NewGreenhouseRepository(db), repository.NewSensorRepository(db), repository.NewAlertRepository(db), nil, slog.New(slog.NewTextHandler(io.Discard, nil)), ws.NewHub())
 	_, alert, err := svc.Ingest(sensor.ID, 35)
 	if err != nil {
 		t.Fatal(err)

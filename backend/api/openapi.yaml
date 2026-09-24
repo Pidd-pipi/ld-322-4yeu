@@ -12,3 +12,10 @@ paths:
     post: {summary: Ingest a sensor reading, responses: {'201': {description: Created}}}
   /api/v1/alerts:
     get: {summary: List alerts, responses: {'200': {description: OK}}}
+  /api/v1/automation-rules:
+    get: {summary: List threshold automation rules, responses: {'200': {description: OK}}}
+    post: {summary: Create threshold automation rule, responses: {'201': {description: Created}}}
+  /api/v1/automation-rules/{id}/status:
+    patch: {summary: Enable or disable threshold automation rule, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  /api/v1/automation-rules/{id}:
+    delete: {summary: Remove threshold automation rule, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}

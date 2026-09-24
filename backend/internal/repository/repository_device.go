@@ -11,6 +11,20 @@ import (
 type DeviceRepository struct{ db *gorm.DB }
 
 func NewDeviceRepository(db *gorm.DB) *DeviceRepository { return &DeviceRepository{db: db} }
+func (r *DeviceRepository) WithTx(tx *gorm.DB) *DeviceRepository {
+	return &DeviceRepository{db: tx}
+}
+func (r *DeviceRepository) Get(id uint) (*model.Device, error) {
+	var row model.Device
+	err := r.db.First(&row, id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, apperrors.ErrRecordNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("get device: %w", err)
+	}
+	return &row, nil
+}
 func (r *DeviceRepository) List(greenhouseID uint) ([]model.Device, error) {
 	var rows []model.Device
 	if err := r.db.Where("greenhouse_id=?", greenhouseID).Order("id asc").Find(&rows).Error; err != nil {
@@ -35,6 +49,28 @@ func (r *DeviceRepository) Toggle(id uint, status string) (*model.Device, error)
 		return nil, fmt.Errorf("create device action: %w", err)
 	}
 	return &row, nil
+}
+func (r *DeviceRepository) EnsureStatus(id uint, status, operator string) (*model.Device, bool, error) {
+	var row model.Device
+	err := r.db.First(&row, id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, false, apperrors.ErrRecordNotFound
+	}
+	if err != nil {
+		return nil, false, fmt.Errorf("get device: %w", err)
+	}
+	if row.Status == status {
+		return &row, false, nil
+	}
+	row.Status = status
+	row.UpdatedAt = r.db.NowFunc()
+	if err = r.db.Save(&row).Error; err != nil {
+		return nil, false, fmt.Errorf("save device: %w", err)
+	}
+	if err = r.db.Create(&model.DeviceAction{DeviceID: id, Action: status, Operator: operator}).Error; err != nil {
+		return nil, false, fmt.Errorf("create device action: %w", err)
+	}
+	return &row, true, nil
 }
 func (r *DeviceRepository) CreateSchedule(row *model.Schedule) error {
 	if err := r.db.Create(row).Error; err != nil {
